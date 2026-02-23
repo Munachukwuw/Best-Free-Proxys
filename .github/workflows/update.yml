@@ -50,47 +50,9 @@ jobs:
           sort -u socks4.txt -o socks4.txt
           sort -u socks5.txt -o socks5.txt
 
-      - name: Validate Proxies
-        run: |
-          echo "Validating proxies..."
-
-          set +e
-
-          validate () {
-            file=$1
-            tmp="validated_$file"
-            > $tmp
-
-            while read -r proxy; do
-              timeout 2 curl -x "$proxy" -s https://api.ipify.org > /dev/null 2>&1
-              if [ $? -eq 0 ]; then
-                echo "$proxy" >> $tmp
-              fi
-            done < $file
-
-            # If validation found nothing, keep original
-            if [ -s $tmp ]; then
-              mv $tmp $file
-            else
-              rm -f $tmp
-            fi
-
-            sort -u $file -o $file
-          }
-
-          validate http.txt
-          validate https.txt
-          validate socks4.txt
-          validate socks5.txt
-
-          # Combined list
-          cat http.txt https.txt socks4.txt socks5.txt | sort -u > proxies.txt
-
-          set -e
-
       - name: Commit & Push
         run: |
-          git config --global user.name "proxy-bot"
+          git config --global user.name "ghosted"
           git config --global user.email "bot@github.com"
 
           if [[ -n $(git status -s) ]]; then
