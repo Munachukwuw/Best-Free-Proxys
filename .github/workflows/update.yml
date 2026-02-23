@@ -1,4 +1,7 @@
-name: Update Free Proxy Lists
+name: Update Validated Proxy Lists
+
+permissions:
+  contents: write
 
 on:
   schedule:
@@ -12,44 +15,48 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Fetch Proxies
+      - name: Install dependencies
         run: |
-          echo "Fetching free proxy lists..."
+          sudo apt update
+          sudo apt install -y curl
 
-          # Clear old files
-          > http.txt
-          > https.txt
-          > socks4.txt
-          > socks5.txt
+      - name: Fetch & Validate Proxies
+        run: |
+          echo "Fetching proxies..."
+
+          > raw.txt
           > proxies.txt
 
-          # HTTP
-          curl -s https://api.proxyscrape.com/v2/?request=getproxies&protocol=http >> http.txt
-          curl -s https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/http.txt >> http.txt
-          curl -s https://raw.githubusercontent.com/clarketm/proxy-list/master/proxy-list-raw.txt >> http.txt
+          curl -s https://api.proxyscrape.com/v2/?request=getproxies&protocol=http >> raw.txt
+          curl -s https://api.proxyscrape.com/v2/?request=getproxies&protocol=https >> raw.txt
+          curl -s https://api.proxyscrape.com/v2/?request=getproxies&protocol=socks4 >> raw.txt
+          curl -s https://api.proxyscrape.com/v2/?request=getproxies&protocol=socks5 >> raw.txt
+          curl -s https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/http.txt >> raw.txt
+          curl -s https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks4.txt >> raw.txt
+          curl -s https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks5.txt >> raw.txt
 
-          # HTTPS
-          curl -s https://api.proxyscrape.com/v2/?request=getproxies&protocol=https >> https.txt
+          sort -u raw.txt -o raw.txt
 
-          # SOCKS4
-          curl -s https://api.proxyscrape.com/v2/?request=getproxies&protocol=socks4 >> socks4.txt
-          curl -s https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks4.txt >> socks4.txt
+          echo "Validating proxies (max 500ms)..."
 
-          # SOCKS5
-          curl -s https://api.proxyscrape.com/v2/?request=getproxies&protocol=socks5 >> socks5.txt
-          curl -s https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks5.txt >> socks5.txt
+          while read proxy; do
+            curl -x "$proxy" -m 0.5 -s https://api.ipify.org > /dev/null 2>&1
+            if [ $? -eq 0 ]; then
+              echo "$proxy" >> proxies.txt
+            fi
+          done < raw.txt
 
-          sort -u http.txt -o http.txt
-          sort -u https.txt -o https.txt
-          sort -u socks4.txt -o socks4.txt
-          sort -u socks5.txt -o socks5.txt
+          sort -u proxies.txt -o proxies.txt
 
-          cat http.txt https.txt socks4.txt socks5.txt | sort -u > proxies.txt
-
-      - name: Commit & Push
+      - name: Commit & Push if changed
         run: |
-          git config --global user.name "proxy-bot"
-          git config --global user.email "bot@github.com"
-          git add .
-          git commit -m "Auto update proxy lists" || echo "No changes"
-          git push
+          git config --global user.name "ghostedmy"
+          git config --global user.email "contact@ghosted.my"
+
+          if [[ -n $(git status -s) ]]; then
+            git add .
+            git commit -m "Auto update validated proxy list"
+            git push
+          else
+            echo "No changes"
+          fi
