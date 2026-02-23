@@ -47,6 +47,8 @@ jobs:
         run: |
           echo "Validating proxies..."
 
+          set +e
+
           > http.txt
           > https.txt
           > socks4.txt
@@ -63,7 +65,7 @@ jobs:
               fi
             done < $input
 
-            # Falls keine validen gefunden → fallback auf raw
+            # Fallback falls leer
             if [ ! -s $output ]; then
               cp $input $output
             fi
@@ -77,6 +79,8 @@ jobs:
           validate_list socks5_raw.txt socks5.txt
 
           cat http.txt https.txt socks4.txt socks5.txt | sort -u > proxies.txt
+
+          set -e
 
       - name: Commit & Push if changed
         run: |
