@@ -61,9 +61,9 @@ Included types:
 
 # 📥 How To Use (curl)
 
-Replace `USERNAME` with your GitHub username and `REPO` with your repository name.
+Replace `ghostedmy` with your GitHub username and `https://github.com/ghostedmy/Best-Free-Proxys` with your repository name.
 
 ## 🔹 Get all proxies
 
 ```bash
-curl https://raw.githubusercontent.com/USERNAME/REPO/main/proxies.txt
+curl https://raw.githubusercontent.com/ghostedmy/Best-Free-Proxys/main/proxies.txt
