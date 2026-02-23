@@ -1,4 +1,4 @@
-name: Update Validated Proxy Lists
+name: Update Free Proxy Lists
 
 permissions:
   contents: write
@@ -15,47 +15,77 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Install dependencies
+      - name: Fetch Raw Proxies
         run: |
-          sudo apt update
-          sudo apt install -y curl
+          echo "Fetching raw proxies..."
 
-      - name: Fetch & Validate Proxies
+          # HTTP
+          > http_raw.txt
+          curl -s https://api.proxyscrape.com/v2/?request=getproxies&protocol=http >> http_raw.txt || true
+          curl -s https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/http.txt >> http_raw.txt || true
+
+          # HTTPS
+          > https_raw.txt
+          curl -s https://api.proxyscrape.com/v2/?request=getproxies&protocol=https >> https_raw.txt || true
+
+          # SOCKS4
+          > socks4_raw.txt
+          curl -s https://api.proxyscrape.com/v2/?request=getproxies&protocol=socks4 >> socks4_raw.txt || true
+          curl -s https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks4.txt >> socks4_raw.txt || true
+
+          # SOCKS5
+          > socks5_raw.txt
+          curl -s https://api.proxyscrape.com/v2/?request=getproxies&protocol=socks5 >> socks5_raw.txt || true
+          curl -s https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks5.txt >> socks5_raw.txt || true
+
+          sort -u http_raw.txt -o http_raw.txt
+          sort -u https_raw.txt -o https_raw.txt
+          sort -u socks4_raw.txt -o socks4_raw.txt
+          sort -u socks5_raw.txt -o socks5_raw.txt
+
+      - name: Validate Proxies
         run: |
-          echo "Fetching proxies..."
+          echo "Validating proxies..."
 
-          > raw.txt
-          > proxies.txt
+          > http.txt
+          > https.txt
+          > socks4.txt
+          > socks5.txt
 
-          curl -s https://api.proxyscrape.com/v2/?request=getproxies&protocol=http >> raw.txt || true
-          curl -s https://api.proxyscrape.com/v2/?request=getproxies&protocol=https >> raw.txt || true
-          curl -s https://api.proxyscrape.com/v2/?request=getproxies&protocol=socks4 >> raw.txt || true
-          curl -s https://api.proxyscrape.com/v2/?request=getproxies&protocol=socks5 >> raw.txt || true
-          curl -s https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/http.txt >> raw.txt || true
-          curl -s https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks4.txt >> raw.txt || true
-          curl -s https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks5.txt >> raw.txt || true
+          validate_list () {
+            input=$1
+            output=$2
 
-          sort -u raw.txt -o raw.txt
+            while read proxy; do
+              timeout 2 curl -x "$proxy" -s https://api.ipify.org > /dev/null 2>&1
+              if [ $? -eq 0 ]; then
+                echo "$proxy" >> $output
+              fi
+            done < $input
 
-          echo "Validating proxies (1 second timeout)..."
-
-          while read proxy; do
-            timeout 1 curl -x "$proxy" -s https://api.ipify.org > /dev/null 2>&1 || true
-            if [ $? -eq 0 ]; then
-              echo "$proxy" >> proxies.txt
+            # Falls keine validen gefunden → fallback auf raw
+            if [ ! -s $output ]; then
+              cp $input $output
             fi
-          done < raw.txt
 
-          sort -u proxies.txt -o proxies.txt
+            sort -u $output -o $output
+          }
+
+          validate_list http_raw.txt http.txt
+          validate_list https_raw.txt https.txt
+          validate_list socks4_raw.txt socks4.txt
+          validate_list socks5_raw.txt socks5.txt
+
+          cat http.txt https.txt socks4.txt socks5.txt | sort -u > proxies.txt
 
       - name: Commit & Push if changed
         run: |
-          git config --global user.name "ghostedmy"
-          git config --global user.email "contact@ghosted.my"
+          git config --global user.name "proxy-bot"
+          git config --global user.email "bot@github.com"
 
           if [[ -n $(git status -s) ]]; then
             git add .
-            git commit -m "Auto update validated proxy list"
+            git commit -m "Auto update proxy lists"
             git push
           else
             echo "No changes"
