@@ -1,0 +1,55 @@
+name: Update Free Proxy Lists
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Fetch Proxies
+        run: |
+          echo "Fetching free proxy lists..."
+
+          # Clear old files
+          > http.txt
+          > https.txt
+          > socks4.txt
+          > socks5.txt
+          > proxies.txt
+
+          # HTTP
+          curl -s https://api.proxyscrape.com/v2/?request=getproxies&protocol=http >> http.txt
+          curl -s https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/http.txt >> http.txt
+          curl -s https://raw.githubusercontent.com/clarketm/proxy-list/master/proxy-list-raw.txt >> http.txt
+
+          # HTTPS
+          curl -s https://api.proxyscrape.com/v2/?request=getproxies&protocol=https >> https.txt
+
+          # SOCKS4
+          curl -s https://api.proxyscrape.com/v2/?request=getproxies&protocol=socks4 >> socks4.txt
+          curl -s https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks4.txt >> socks4.txt
+
+          # SOCKS5
+          curl -s https://api.proxyscrape.com/v2/?request=getproxies&protocol=socks5 >> socks5.txt
+          curl -s https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks5.txt >> socks5.txt
+
+          sort -u http.txt -o http.txt
+          sort -u https.txt -o https.txt
+          sort -u socks4.txt -o socks4.txt
+          sort -u socks5.txt -o socks5.txt
+
+          cat http.txt https.txt socks4.txt socks5.txt | sort -u > proxies.txt
+
+      - name: Commit & Push
+        run: |
+          git config --global user.name "proxy-bot"
+          git config --global user.email "bot@github.com"
+          git add .
+          git commit -m "Auto update proxy lists" || echo "No changes"
+          git push
