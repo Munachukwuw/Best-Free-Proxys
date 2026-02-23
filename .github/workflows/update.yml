@@ -15,33 +15,40 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Fetch Raw Proxies
+      - name: Fetch Proxies
         run: |
-          echo "Fetching raw proxies..."
+          echo "Fetching proxies..."
+
+          # Clear old files
+          > http.txt
+          > https.txt
+          > socks4.txt
+          > socks5.txt
 
           # HTTP
-          > http_raw.txt
-          curl -s https://api.proxyscrape.com/v2/?request=getproxies&protocol=http >> http_raw.txt || true
-          curl -s https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/http.txt >> http_raw.txt || true
+          curl -s https://api.proxyscrape.com/v2/?request=getproxies&protocol=http >> http.txt || true
+          curl -s https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/http.txt >> http.txt || true
 
           # HTTPS
-          > https_raw.txt
-          curl -s https://api.proxyscrape.com/v2/?request=getproxies&protocol=https >> https_raw.txt || true
+          curl -s https://api.proxyscrape.com/v2/?request=getproxies&protocol=https >> https.txt || true
 
           # SOCKS4
-          > socks4_raw.txt
-          curl -s https://api.proxyscrape.com/v2/?request=getproxies&protocol=socks4 >> socks4_raw.txt || true
-          curl -s https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks4.txt >> socks4_raw.txt || true
+          curl -s https://api.proxyscrape.com/v2/?request=getproxies&protocol=socks4 >> socks4.txt || true
+          curl -s https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks4.txt >> socks4.txt || true
 
           # SOCKS5
-          > socks5_raw.txt
-          curl -s https://api.proxyscrape.com/v2/?request=getproxies&protocol=socks5 >> socks5_raw.txt || true
-          curl -s https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks5.txt >> socks5_raw.txt || true
+          curl -s https://api.proxyscrape.com/v2/?request=getproxies&protocol=socks5 >> socks5.txt || true
+          curl -s https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks5.txt >> socks5.txt || true
 
-          sort -u http_raw.txt -o http_raw.txt
-          sort -u https_raw.txt -o https_raw.txt
-          sort -u socks4_raw.txt -o socks4_raw.txt
-          sort -u socks5_raw.txt -o socks5_raw.txt
+          sed -i '/^$/d' http.txt
+          sed -i '/^$/d' https.txt
+          sed -i '/^$/d' socks4.txt
+          sed -i '/^$/d' socks5.txt
+
+          sort -u http.txt -o http.txt
+          sort -u https.txt -o https.txt
+          sort -u socks4.txt -o socks4.txt
+          sort -u socks5.txt -o socks5.txt
 
       - name: Validate Proxies
         run: |
@@ -49,40 +56,39 @@ jobs:
 
           set +e
 
-          > http.txt
-          > https.txt
-          > socks4.txt
-          > socks5.txt
+          validate () {
+            file=$1
+            tmp="validated_$file"
+            > $tmp
 
-          validate_list () {
-            input=$1
-            output=$2
-
-            while read proxy; do
+            while read -r proxy; do
               timeout 2 curl -x "$proxy" -s https://api.ipify.org > /dev/null 2>&1
               if [ $? -eq 0 ]; then
-                echo "$proxy" >> $output
+                echo "$proxy" >> $tmp
               fi
-            done < $input
+            done < $file
 
-            # Fallback falls leer
-            if [ ! -s $output ]; then
-              cp $input $output
+            # If validation found nothing, keep original
+            if [ -s $tmp ]; then
+              mv $tmp $file
+            else
+              rm -f $tmp
             fi
 
-            sort -u $output -o $output
+            sort -u $file -o $file
           }
 
-          validate_list http_raw.txt http.txt
-          validate_list https_raw.txt https.txt
-          validate_list socks4_raw.txt socks4.txt
-          validate_list socks5_raw.txt socks5.txt
+          validate http.txt
+          validate https.txt
+          validate socks4.txt
+          validate socks5.txt
 
+          # Combined list
           cat http.txt https.txt socks4.txt socks5.txt | sort -u > proxies.txt
 
           set -e
 
-      - name: Commit & Push if changed
+      - name: Commit & Push
         run: |
           git config --global user.name "proxy-bot"
           git config --global user.email "bot@github.com"
